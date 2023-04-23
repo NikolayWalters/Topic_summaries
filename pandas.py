@@ -137,3 +137,7 @@ pd.concat([df1, df2])
 left = df1.set_index(['uniqueIndexID'])
 right = df2.set_index(['uniqueIndexID'])
 combinedDF = left.join(right)
+
+# alternative to scikit test/train split
+df_train = customer.sample(frac=0.5)
+df_valid = customer.drop(df_train.index)

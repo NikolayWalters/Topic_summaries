@@ -155,6 +155,14 @@ scores = -1 * cross_val_score(my_pipeline, X, y,
 
 print("MAE scores:\n", scores)
 
+# can also do without a pipe
+# Train and score baseline model
+baseline = RandomForestRegressor(criterion="absolute_error", random_state=0)
+baseline_score = cross_val_score(
+    baseline, X, y, cv=5, scoring="neg_mean_absolute_error"
+)
+baseline_score = -1 * baseline_score.mean()
+
 # === XGBoost ===
 #1) Initial model creation: XGBoost starts with a simple decision tree as the first model. This model predicts 
 #the target variable based on the available input features.

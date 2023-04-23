@@ -36,10 +36,20 @@ sns.scatterplot(x=insurance_data['bmi'], y=insurance_data['charges'], hue=insura
 
 # plots MULTIPLE best-fit lines based on value of some other col
 sns.lmplot(x="bmi", y="charges", hue="smoker", data=insurance_data)
+# for multiple different entries in the same col:
+sns.lmplot(
+    x=feature, y="SalePrice", hue="BldgType", col="BldgType",
+    data=df, scatter_kws={"edgecolor": 'w'}, col_wrap=3, height=4,
+)
 
 # swarmplot - scatterplot for categorical data
 sns.swarmplot(x=insurance_data['smoker'],
               y=insurance_data['charges'])
+
+# categorical plot
+sns.catplot(x="BldgType", y="SalePrice", data=df, kind="boxen")
+# kind empty returns scatter points, box = o.g. box plot, boxen = more boxes
+# violin = violin
 
 # Histogram 
 sns.histplot(iris_data['Petal Length (cm)'])
