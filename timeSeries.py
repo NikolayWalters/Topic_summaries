@@ -102,3 +102,45 @@ dp = DeterministicProcess(
 )
 
 X = dp.in_sample()  # create features for dates in tunnel.index
+
+
+# function to create N lags
+def make_lags(ts, lags):
+    return pd.concat(
+        {
+            f'y_lag_{i}': ts.shift(i)
+            for i in range(1, lags + 1)
+        },
+        axis=1)
+
+
+X = make_lags(flu_trends.FluVisits, lags=4)
+X = X.fillna(0.0)
+
+# For example:
+search_terms = ["FluContagious", "FluCough", "FluFever", "InfluenzaA", "TreatFlu", "IHaveTheFlu", "OverTheCounterFlu", "HowLongFlu"]
+
+# Create three lags for each search term
+X0 = make_lags(flu_trends[search_terms], lags=3)
+X0.columns = [' '.join(col).strip() for col in X0.columns.values]
+
+# Create four lags for the target, as before
+X1 = make_lags(flu_trends['FluVisits'], lags=4)
+
+# Combine to create the training data
+X = pd.concat([X0, X1], axis=1).fillna(0.0)
+
+
+# creating useful features
+y_lag = supply_sales.loc[:, 'sales'].shift(1)
+onpromo = supply_sales.loc[:, 'onpromotion']
+
+# 28-day mean of lagged target
+mean_7 = y_lag.rolling(7).mean()
+# YOUR CODE HERE: 14-day median of lagged target
+median_14 = y_lag.rolling(14).median()
+# YOUR CODE HERE: 7-day rolling standard deviation of lagged target
+std_7 = y_lag.rolling(7).std()
+# YOUR CODE HERE: 7-day sum of promotions with centered window
+promo_7 = onpromo.rolling(7, center=True).sum() # needs centered to avoid data leakage
+
