@@ -82,3 +82,25 @@ image_filter = tf.nn.conv2d(
 )
 
 image_detect = tf.nn.relu(image_filter) #pass to relu
+
+# max pooling layer
+model = keras.Sequential([
+    layers.Conv2D(filters=64, kernel_size=3), # activation is None
+    layers.MaxPool2D(pool_size=2),
+    # More layers follow
+])
+
+# or by using as separate layer
+image_condense = tf.nn.pool(
+    input=image_detect, # image in the Detect step above
+    window_shape=(2, 2),
+    pooling_type='MAX',
+    strides=(2, 2),
+    padding='SAME',
+)
+
+# strides parameter = how far the window should move at each step
+# padding parameter = how we handle the pixels at the edges of the input
+
+# padding='valid' = convolution window will stay entirely inside the input
+# padding='same' = pad with zeros
