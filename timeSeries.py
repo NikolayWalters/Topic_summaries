@@ -144,3 +144,93 @@ std_7 = y_lag.rolling(7).std()
 # YOUR CODE HERE: 7-day sum of promotions with centered window
 promo_7 = onpromo.rolling(7, center=True).sum() # needs centered to avoid data leakage
 
+
+# hybrid modelling, basically:
+# 1. Train and predict with first model
+model_1.fit(X_train_1, y_train)
+y_pred_1 = model_1.predict(X_train)
+
+# 2. Train and predict with second model on residuals
+model_2.fit(X_train_2, y_train - y_pred_1)
+y_pred_2 = model_2.predict(X_train_2)
+
+# 3. Add to get overall predictions
+y_pred = y_pred_1 + y_pred_2
+
+
+# e.g.
+# The `stack` method converts column labels to row labels, pivoting from wide format to long
+X = retail.stack()  # pivot dataset wide to long
+display(X.head())
+y = X.pop('Sales')  # grab target series
+# Turn row labels into categorical feature columns with a label encoding
+X = X.reset_index('Industries')
+# Label encoding for 'Industries' feature
+for colname in X.select_dtypes(["object", "category"]):
+    X[colname], _ = X[colname].factorize()
+
+# Label encoding for annual seasonality
+X["Month"] = X.index.month  # values are 1, 2, ..., 12
+
+# Create splits
+X_train, X_test = X.loc[idx_train, :], X.loc[idx_test, :]
+y_train, y_test = y.loc[idx_train], y.loc[idx_test]
+
+# Pivot wide to long (stack) and convert DataFrame to Series (squeeze)
+y_fit = y_fit.stack().squeeze()    # trend from training set
+y_pred = y_pred.stack().squeeze()  # trend from test set
+
+# Create residuals (the collection of detrended series) from the training set
+y_resid = y_train - y_fit
+
+# Train XGBoost on the residuals
+xgb = XGBRegressor()
+xgb.fit(X_train, y_resid)
+
+# Add the predicted residuals onto the predicted trends
+y_fit_boosted = xgb.predict(X_train) + y_fit
+y_pred_boosted = xgb.predict(X_test) + y_pred
+
+
+# preparing data for multi-step forecasting
+def make_lags(ts, lags, lead_time=1):
+    return pd.concat(
+        {
+            f'y_lag_{i}': ts.shift(i)
+            for i in range(lead_time, lags + lead_time)
+        },
+        axis=1)
+
+
+# Four weeks of lag features
+y = flu_trends.FluVisits.copy()
+X = make_lags(y, lags=4).fillna(0.0)
+
+
+def make_multistep_target(ts, steps):
+    return pd.concat(
+        {f'y_step_{i + 1}': ts.shift(-i)
+         for i in range(steps)},
+        axis=1)
+
+
+# Eight-week forecast
+y = make_multistep_target(y, steps=8).dropna()
+
+# Shifting has created indexes that don't match. Only keep times for
+# which we have both targets and features.
+y, X = y.align(X, join='inner', axis=0)
+
+
+# using XGBoost for multi step forecasting
+from sklearn.multioutput import MultiOutputRegressor
+
+model = MultiOutputRegressor(XGBRegressor())
+model.fit(X_train, y_train)
+
+y_fit = pd.DataFrame(model.predict(X_train), index=X_train.index, columns=y.columns)
+y_pred = pd.DataFrame(model.predict(X_test), index=X_test.index, columns=y.columns)
+
+
+# DirRec strategy = combination of direct and recursive strategies
+# can use RegressorChain for DirRec
