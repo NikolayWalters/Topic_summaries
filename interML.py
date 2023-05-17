@@ -204,3 +204,26 @@ my_model = XGBRegressor(n_estimators=1000, learning_rate=0.05)
 # parallelisation
 my_model = XGBRegressor(n_estimators=1000, learning_rate=0.05, n_jobs=4)
 
+
+# more contained example of xgboost
+from sklearn.model_selection import StratifiedKFold
+kfold = 5
+skf = StratifiedKFold(n_splits=kfold, random_state=42)
+for i, (train_index, test_index) in enumerate(skf.split(X, y)):
+    print('[Fold %d/%d]' % (i + 1, kfold))
+    X_train, X_valid = X[train_index], X[test_index]
+    y_train, y_valid = y[train_index], y[test_index]
+    # Convert our data into XGBoost format
+    d_train = xgb.DMatrix(X_train, y_train)
+    d_valid = xgb.DMatrix(X_valid, y_valid)
+    d_test = xgb.DMatrix(test.values)
+    watchlist = [(d_train, 'train'), (d_valid, 'valid')]
+
+    # Train the model! We pass in a max of 1,600 rounds (with early stopping after 70)
+    # and the custom metric (maximize=True tells xgb that higher metric is better)
+    mdl = xgb.train(params, d_train, 1600, watchlist, early_stopping_rounds=70, feval=gini_xgb, maximize=True, verbose_eval=100)
+
+    print('[Fold %d/%d Prediciton:]' % (i + 1, kfold))
+    # Predict on our test data
+    p_test = mdl.predict(d_test, ntree_limit=mdl.best_ntree_limit)
+    sub['target'] += p_test/kfold
