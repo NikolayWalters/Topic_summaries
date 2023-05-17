@@ -78,3 +78,16 @@ selected_vars = list(feat_labels[sfm.get_support()])
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 scaler.fit_transform(train.drop(['target'], axis=1))
+
+
+
+# PCA want about 99% of var explained by ~15 components
+from sklearn.decomposition import PCA
+pca = PCA(n_components=20, svd_solver='full', random_state=1001)
+X_pca = pca.fit_transform(X)
+print('Explained variance: %.4f' % pca.explained_variance_ratio_.sum())
+print('Individual variance contributions:')
+for j in range(n_comp):
+    print(pca.explained_variance_ratio_[j])
+
+# or tSNE
