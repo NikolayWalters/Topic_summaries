@@ -35,8 +35,18 @@ print('In total, there are {} variables with missing values'.format(len(vars_wit
 # sometimes good to keep missing vals as separate (i.e. is_missing col = True)
 
 
+# check if any columns contain bools and cast to binary:
+dataset_df['bool_col'] = dataset_df['bool_col'].astype(int)
+
+
 # check cardinality of cat
 # consider encoding; one-hot or cont
+
+
+
+# check if any cats can be split up like title+name, address, cabin number
+dataset_df[["Deck", "Cabin_num", "Side"]] = dataset_df["Cabin"].str.split("/", expand=True) # splits on /
+# original example: B/0/P
 
 
 # correlation heatmaps
@@ -53,6 +63,7 @@ sns.heatmap(corr, cmap=cmap, vmax=.3, center=0,
 plt.show()
 
 # plots
+# histogram columns?
 
 
 # feature engineering
