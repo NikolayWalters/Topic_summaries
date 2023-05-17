@@ -14,6 +14,10 @@ Some general strating steps
 
 
 # missing vals
+train.isnull().values.any()
+
+# or if it's some specific val:
+# could also read it in with replacement to nans: train=pd.read_csv('../input/train.csv', na_values=-1)
 vars_with_missing = []
 
 for f in train.columns:
@@ -36,6 +40,17 @@ print('In total, there are {} variables with missing values'.format(len(vars_wit
 
 
 # correlation heatmaps
+sns.set(style="white")
+# Compute the correlation matrix
+corr = train.corr()
+# Set up the matplotlib figure
+f, ax = plt.subplots(figsize=(11, 9))
+# Generate a custom diverging colormap
+cmap = sns.diverging_palette(220, 10, as_cmap=True)
+# Draw the heatmap with the mask and correct aspect ratio
+sns.heatmap(corr, cmap=cmap, vmax=.3, center=0,
+            square=True, linewidths=.5, cbar_kws={"shrink": .5})
+plt.show()
 
 # plots
 
