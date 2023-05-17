@@ -42,3 +42,16 @@ df_test_over = pd.concat([df_class_0, df_class_1_over], axis=0)
 import imblearn
 # TomekLinks from imblearn or ClusterCentroids or SMOTE from the same package
 # or from imblearn.combine import SMOTETomek
+
+
+# splitting dataset
+from sklearn.model_selection import StratifiedKFold
+kfold = 5
+skf = StratifiedKFold(n_splits=kfold, random_state=42)
+# stratified k fold keeps target distribution consistent in each fold
+# which is useful for imbalanced dataset 
+
+# can then split it or do whatever with it
+for train_index, test_index in skf.split(X, y):
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
