@@ -71,7 +71,39 @@ train.drop('na_count', axis=1, inplace=True)
 train['Age_group']=np.nan
 train.loc[train['Age']<=12,'Age_group']='Age_0-12'
 train.loc[(train['Age']>12) & (train['Age']<18),'Age_group']='Age_13-17'
-#etc
+# etc
+# or
+# Missing values before
+A_bef=data[exp_feats].isna().sum().sum()
+# Fill missing values using the median
+na_rows_A=data.loc[data['Age'].isna(),'Age'].index
+data.loc[data['Age'].isna(),'Age']=data.groupby(['HomePlanet','No_spending','Solo','Cabin_deck'])['Age'].transform(lambda x: x.fillna(x.median()))[na_rows_A]
+
+
+# when imputing think if some inference can be made, i.e. if people are from the same group
+# then makes sense to impute their destination/origin to be the same (based on present values
+# in the group, i.e. if one is from origin A then the whole group is likely from A)
+# another example are people filled in into the cabins based on the origin?
+# make heatmaps and look for patterns
+
+# display join distribution tables
+# Joint distribution
+data.groupby(['HomePlanet','Destination','Solo','Cabin_deck'])['Cabin_deck'].size().unstack().fillna(0)
+
+# is cabin number proportional to group number and can na be filled with regression?
+# Extrapolate linear relationship on a deck by deck basis
+for deck in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+    # Features and labels
+    X_CN=data.loc[~(data['Cabin_number'].isna()) & (data['Cabin_deck']==deck),'Group']
+    y_CN=data.loc[~(data['Cabin_number'].isna()) & (data['Cabin_deck']==deck),'Cabin_number']
+    X_test_CN=data.loc[(data['Cabin_number'].isna()) & (data['Cabin_deck']==deck),'Group']
+    # Linear regression
+    model_CN=LinearRegression()
+    model_CN.fit(X_CN.values.reshape(-1, 1), y_CN)
+    preds_CN=model_CN.predict(X_test_CN.values.reshape(-1, 1))
+    # Fill missing values with predictions
+    data.loc[(data['Cabin_number'].isna()) & (data['Cabin_deck']==deck),'Cabin_number']=preds_CN.astype(int)
+
 
 # consider adding a column that tracks if an imputation was made
 
