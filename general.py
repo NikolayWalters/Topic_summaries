@@ -114,6 +114,9 @@ y=train['Target'].copy().astype(int)
 X=train.drop('Target', axis=1).copy()
 # Concatenate dataframes
 data=pd.concat([X, test], axis=0).reset_index(drop=True)
+# can then split back up using:
+X=data[data['PassengerId'].isin(train['PassengerId'].values)].copy()
+X_test=data[data['PassengerId'].isin(test['PassengerId'].values)].copy()
 
 
 # consider IDs, especially if they are composite
@@ -128,7 +131,16 @@ dataset_df['bool_col'] = dataset_df['bool_col'].astype(int)
 
 # check cardinality of cat
 train.nunique()
-# consider encoding; one-hot or cont
+# consider encoding; one-hot or cont (apply one hot after all the imputations)
+categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder(drop='if_binary', 
+	handle_unknown='ignore',sparse=False))])
+ct = ColumnTransformer(
+    transformers=[
+        ('cat', categorical_transformer, categorical_cols)],
+        remainder='passthrough')
+# Apply preprocessing
+X = ct.fit_transform(X)
+X_test = ct.transform(X_test)
 
 
 
@@ -208,7 +220,16 @@ plt.show()
 
 # consider transforms, like log transform if a distribution is exponential to reduce skew
 
-
+# or scale:
+# Scale numerical data to have mean=0 and variance=1
+numerical_transformer = Pipeline(steps=[('scaler', StandardScaler())])
+ct = ColumnTransformer(
+    transformers=[
+        ('num', numerical_transformer, numerical_cols)],
+        remainder='passthrough')
+# Apply preprocessing
+X = ct.fit_transform(X)
+X_test = ct.transform(X_test)
 
 # feature engineering
 
