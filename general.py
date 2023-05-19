@@ -282,3 +282,6 @@ for j in range(n_comp):
     print(pca.explained_variance_ratio_[j])
 
 # or tSNE
+
+
+# if good accuracy check for data leaks
