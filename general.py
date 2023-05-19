@@ -47,6 +47,23 @@ print('In total, there are {} variables with missing values'.format(len(vars_wit
 # sometimes good to keep missing vals as separate (i.e. is_missing col = True)
 
 
+# consider plotting a heatmap of missing values and dropping rows with many missing vals
+# Heatmap of missing values
+plt.figure(figsize=(12,6))
+sns.heatmap(train[na_cols].isna().T, cmap='summer')
+plt.title('Heatmap of missing values')
+
+
+# plot to see if there's any pattern between target and missing values
+# Countplot of number of missing values by passenger
+train['na_count']=train.isna().sum(axis=1)
+plt.figure(figsize=(10,4))
+sns.countplot(data=train, x='na_count', hue='Transported')
+plt.title('Number of missing entries by passenger')
+train.drop('na_count', axis=1, inplace=True)
+
+
+
 # if imputing missing features might be worth for example to split data into groups and then impute based
 # on group's statistic. for example, for missing expenditure create age groups and fill expenditure
 # based on age group's mean
@@ -57,6 +74,14 @@ train.loc[(train['Age']>12) & (train['Age']<18),'Age_group']='Age_13-17'
 #etc
 
 # consider adding a column that tracks if an imputation was made
+
+
+# before imputing combine train and test
+# Labels and features
+y=train['Target'].copy().astype(int)
+X=train.drop('Target', axis=1).copy()
+# Concatenate dataframes
+data=pd.concat([X, test], axis=0).reset_index(drop=True)
 
 
 # consider IDs, especially if they are composite
