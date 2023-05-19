@@ -13,8 +13,20 @@ Some general strating steps
 .shape
 
 
+# check for class imbalance, can plot
+plt.figure(figsize=(6,6))
+# Pie plot
+train['Target'].value_counts().plot.pie(explode=[0.1,0.1], autopct='%1.1f%%',
+ shadow=True, textprops={'fontsize':16}).set_title("Target distribution")
+
+# if yes, under/over-sampling or more advanced like smote (need to make some scatter plots like pca maybe to decide
+# if appropriate)
+
+
 # missing vals
 train.isnull().values.any()
+#or
+print(train.isna().sum())
 
 # or if it's some specific val:
 # could also read it in with replacement to nans: train=pd.read_csv('../input/train.csv', na_values=-1)
@@ -35,11 +47,30 @@ print('In total, there are {} variables with missing values'.format(len(vars_wit
 # sometimes good to keep missing vals as separate (i.e. is_missing col = True)
 
 
+# if imputing missing features might be worth for example to split data into groups and then impute based
+# on group's statistic. for example, for missing expenditure create age groups and fill expenditure
+# based on age group's mean
+# e.g. 
+train['Age_group']=np.nan
+train.loc[train['Age']<=12,'Age_group']='Age_0-12'
+train.loc[(train['Age']>12) & (train['Age']<18),'Age_group']='Age_13-17'
+#etc
+
+# consider adding a column that tracks if an imputation was made
+
+
+# consider IDs, especially if they are composite
+# can something till be gotten out of it
+# for example number of people in a group
+# or get family size from second names 
+
+
 # check if any columns contain bools and cast to binary:
 dataset_df['bool_col'] = dataset_df['bool_col'].astype(int)
 
 
 # check cardinality of cat
+train.nunique()
 # consider encoding; one-hot or cont
 
 
@@ -62,8 +93,64 @@ sns.heatmap(corr, cmap=cmap, vmax=.3, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 plt.show()
 
-# plots
-# histogram columns?
+
+
+# cat plots
+# Categorical features
+cat_feats=['HomePlanet', 'CryoSleep', 'Destination', 'VIP']
+# Plot categorical features
+fig=plt.figure(figsize=(10,16))
+for i, var_name in enumerate(cat_feats):
+    ax=fig.add_subplot(4,1,i+1)
+    sns.countplot(data=train, x=var_name, axes=ax, hue='Transported')
+    ax.set_title(var_name)
+fig.tight_layout()  # Improves appearance a bit
+plt.show()
+
+# consider dropping if target split 50/50 for a feature (to reduce overfitting)
+
+
+
+# continious features; should plot
+# Figure size
+plt.figure(figsize=(10,4))
+# Histogram
+sns.histplot(data=train, x='Age', hue='Transported', binwidth=1, kde=True)
+# Aesthetics
+plt.title('Age distribution')
+plt.xlabel('Age (years)')
+
+
+# or another set of plots
+# Expenditure features
+exp_feats=['RoomService', 'FoodCourt', 'ShoppingMall', 'Spa', 'VRDeck']
+# Plot expenditure features
+fig=plt.figure(figsize=(10,20))
+for i, var_name in enumerate(exp_feats):
+    # Left plot
+    ax=fig.add_subplot(5,2,2*i+1)
+    sns.histplot(data=train, x=var_name, axes=ax, bins=30, kde=False, hue='Transported')
+    ax.set_title(var_name)
+    # Right plot (truncated)
+    ax=fig.add_subplot(5,2,2*i+2)
+    sns.histplot(data=train, x=var_name, axes=ax, bins=30, kde=True, hue='Transported')
+    plt.ylim([0,100])
+    ax.set_title(var_name)
+fig.tight_layout()  # Improves appearance a bit
+plt.show()
+
+
+
+# here think about feature creation based on any discrepancies between the two target classes
+# i.e. are certain ages produce different kde? Create a new feature that indicates whether 
+# the passanger is a child, adolescent or adult. 
+# multiple features can be combined, e.g. money spent on food, shopping -> tot money spent
+# create a binary feature if there is a lot of zeros in one col, e.g. if a person spent nothing (0)
+# or something (1) instead of lsiting expenditures
+
+
+# consider transforms, like log transform if a distribution is exponential to reduce skew
+
 
 
 # feature engineering
