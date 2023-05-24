@@ -141,3 +141,14 @@ combinedDF = left.join(right)
 # alternative to scikit test/train split
 df_train = customer.sample(frac=0.5)
 df_valid = customer.drop(df_train.index)
+
+# to iterate through the df based on condition (instead of using boolean condition)
+# define output df
+filtered_df = pd.DataFrame()
+# Iterate over each row in the DataFrame
+for index, row in magneticDF.iterrows():
+    if ((row['gmag']+3.75*row['BPRP']-13.6) > 0) and ((row['gmag']-(8/3)*row['BPRP']-11.7) > 0) and ((row['gmag']+3.75*row['BPRP']-15.7) < 0) and ((row['gmag'] -(8/3)*row['BPRP']-13) < 0):
+        # Append the row to the filtered DataFrame
+        filtered_df = filtered_df.append(row)
+# Reset the index of the filtered DataFrame
+filtered_df.reset_index(drop=True, inplace=True)
