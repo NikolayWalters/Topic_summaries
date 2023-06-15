@@ -42,6 +42,12 @@ df_test_over = pd.concat([df_class_0, df_class_1_over], axis=0)
 import imblearn
 # TomekLinks from imblearn or ClusterCentroids or SMOTE from the same package
 # or from imblearn.combine import SMOTETomek
+# smote
+from imblearn.over_sampling import SMOTE
+
+smote = SMOTE()
+X_resampled, y_resampled = smote.fit_resample(X, y)
+resampled_df = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled, columns=['Target'])], axis=1)
 
 
 # splitting dataset
