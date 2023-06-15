@@ -119,6 +119,24 @@ X=data[data['PassengerId'].isin(train['PassengerId'].values)].copy()
 X_test=data[data['PassengerId'].isin(test['PassengerId'].values)].copy()
 
 
+# good way to describe data stats
+# Check basic statistics for numerical columns
+numerical_columns = ['Air temperature [K]', 'Process temperature [K]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
+# Calculate basic statistics
+statistics = data[numerical_columns].describe().transpose()
+# Remove the "count" row from the statistics table
+statistics = statistics.drop('count', axis=1)
+# Plot the statistics as a heatmap
+plt.figure(figsize=(10, 6))
+sns.heatmap(statistics, annot=True, cmap='YlGnBu', fmt=".2f", cbar=False)
+plt.title("Basic Statistics Heatmap")
+plt.xlabel("Statistics")
+plt.ylabel("Numerical Columns")
+plt.xticks(rotation=45)
+plt.show()
+
+
+
 # consider IDs, especially if they are composite
 # can something till be gotten out of it
 # for example number of people in a group
