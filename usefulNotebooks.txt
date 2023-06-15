@@ -1,0 +1,6 @@
+"""
+Some kaggle notebooks that I found useful
+"""
+
+https://www.kaggle.com/code/tumpanjawat/s3e17-mf-eda-clustering-adaboost
+simple analysis from start to finish with useful discussion at each step
