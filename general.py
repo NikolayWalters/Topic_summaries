@@ -136,6 +136,28 @@ plt.xticks(rotation=45)
 plt.show()
 
 
+# cool looking radar chart
+# Radar Chart: Comparison of average values of different variables for each failure type.
+avg_values = data.groupby('Machine failure')[['Air temperature [K]', 'Process temperature [K]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']].mean().reset_index()
+labels = ['Air temperature [K]', 'Process temperature [K]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
+num_vars = len(labels)
+
+angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+angles += angles[:1]
+
+fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+ax.fill(angles, avg_values.iloc[0, 1:].tolist() + avg_values.iloc[0, 1:2].tolist(), alpha=0.25, label='No Failure')
+ax.fill(angles, avg_values.iloc[1, 1:].tolist() + avg_values.iloc[1, 1:2].tolist(), alpha=0.25, label='Failure')
+
+ax.set_xticks(angles[:-1])
+ax.set_xticklabels(labels)
+ax.set_yticks([0, 20, 40, 60, 80, 100])
+ax.set_ylim(0, 100)
+ax.set_title('Radar Chart: Comparison of average values for each failure type')
+
+ax.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
+plt.show()
+
 
 # consider IDs, especially if they are composite
 # can something till be gotten out of it
