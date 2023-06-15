@@ -203,6 +203,27 @@ sns.heatmap(corr, cmap=cmap, vmax=.3, center=0,
 plt.show()
 
 
+# corr matrix
+correlation_matrix = processed_df.corr()
+plt.figure(figsize=(15, 10))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5, fmt='.2f')
+plt.title("Correlation Matrix Heatmap")
+plt.show()
+
+
+# or just correlation with the target
+corr = processed_df.corr()
+target_corr = corr['Machine failure'].drop('Machine failure')
+# Sort correlation values in descending order
+target_corr_sorted = target_corr.sort_values(ascending=False)
+# Create a heatmap of the correlations with the target column
+sns.set(font_scale=0.8)
+sns.set_style("white")
+sns.set_palette("PuBuGn_d")
+sns.heatmap(target_corr_sorted.to_frame(), cmap="coolwarm", annot=True, fmt='.2f')
+plt.title('Correlation with Medication cost')
+plt.show()
+
 
 # cat plots
 # Categorical features
@@ -325,3 +346,48 @@ for j in range(n_comp):
 
 
 # if good accuracy check for data leaks
+
+# slap xgboost
+import xgboost as xgb
+model = xgb.XGBClassifier()
+model.fit(X_train_sub, y_train)
+y_pred = model.predict(X_test_sub)
+
+# post result analysis
+
+# Create a confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(10,7))
+sns.heatmap(cm, annot=True)
+plt.xlabel('Predicted')
+plt.ylabel('Truth')
+plt.title('Confusion Matrix')
+plt.show()
+
+
+# roc/auc
+# Calculate ROC curve
+fpr, tpr, thresholds = roc_curve(y_test, y_pred)
+auc_score = roc_auc_score(y_test, y_pred)
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, label='ROC Curve (AUC = {:.2f})'.format(auc_score), color='b')
+plt.plot([0, 1], [0, 1], 'k--', color='r', label='Random Guessing')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
+plt.grid(True)
+plt.show()
+
+
+# Calculate Precision-Recall curve
+precision, recall, thresholds = precision_recall_curve(y_test, y_pred)
+average_precision = average_precision_score(y_test, y_pred)
+plt.figure(figsize=(8, 6))
+plt.plot(recall, precision, label='Precision-Recall Curve (AP = {:.2f})'.format(average_precision), color='b')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend(loc='lower left')
+plt.grid(True)
+plt.show()
