@@ -6,11 +6,27 @@ Some general strating steps
 .head()
 .tail()
 .shape
-.info()
+.info() # useful to show datatypes
+.columns # might want to separate into num and cat here
+# something like this:
+nums_columns = train_data.select_dtypes(include=['float64', 'int64']).columns.tolist()
+cat_columns = train_data.select_dtypes(include=['object']).columns.tolist()
+features = nums_columns + cat_columns
+
+# tabled summary
+df.describe().T\
+        .style.bar(subset=['mean'], color=px.colors.qualitative.G10[2])\
+        .background_gradient(subset=['std'], cmap='Blues')\
+        .background_gradient(subset=['50%'], cmap='BuGn')
 
 # check for dups
 .drop_duplicates()
 .shape
+
+# just plots everything
+sns.set(style="ticks")
+sns.pairplot(train_data)
+plt.show()
 
 
 # check for class imbalance, can plot
@@ -18,9 +34,32 @@ plt.figure(figsize=(6,6))
 # Pie plot
 train['Target'].value_counts().plot.pie(explode=[0.1,0.1], autopct='%1.1f%%',
  shadow=True, textprops={'fontsize':16}).set_title("Target distribution")
+ # or if want a fancier pie plot
+ import plotly.express as px
+class_map = {0: 'Class 0', 1: 'Class 1'}
+train_data['ClassMap'] = train_data['Machine failure'].map(class_map)
+fig = px.pie(train_data, names='ClassMap', height=540, width=840, hole=0.45,
+             title='Target Overview - Machine failure',
+             color_discrete_sequence=["#00008B", "#ADD8E6"])
+fig.update_layout(font_color='#000000',
+                  title_font_size=18,
+                  showlegend=False)
+fig.add_annotation(x=0.5, y=0.5, align='center', xref='paper', yref='paper',
+                   showarrow=False, font_size=22, text='Class<br>Imbalance')
+fig.show()
 
 # if yes, under/over-sampling or more advanced like smote (need to make some scatter plots like pca maybe to decide
 # if appropriate)
+# be careful with smote though. not always a good idea, usually don't use when:
+# 1) Small minority class, i.e. 99/1 split
+# 2) noisy data, i.e. uncertainties
+# 3) class overlap
+# 4) sequential data/time series (smote assumes points independent)
+# smote
+from imblearn.over_sampling import SMOTE
+smote = SMOTE()
+X_resampled, y_resampled = smote.fit_resample(X, y)
+train = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled, columns=['Machine failure'])], axis=1)
 
 
 # missing vals
@@ -347,6 +386,11 @@ for j in range(n_comp):
 
 # if good accuracy check for data leaks
 
+
+# if cats consider
+from catboost import CatBoostClassifier
+# or 
+import lightgbm as lgb #which will also do one hot encodings automatically
 # slap xgboost
 # NB defaults
 XGBClassifier(base_score=0.5, colsample_bylevel=1, colsample_bytree=1,
