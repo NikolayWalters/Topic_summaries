@@ -353,6 +353,29 @@ model = xgb.XGBClassifier()
 model.fit(X_train_sub, y_train)
 y_pred = model.predict(X_test_sub)
 
+
+
+# or xgboost parameter grid search
+# with cross validation
+from sklearn.model_selection import GridSearchCV
+param_grid = {
+    'learning_rate': [0.1, 0.01, 0.001],
+    'max_depth': [3, 5, 7],
+    'n_estimators': [100, 500, 1000]
+}
+xgb_model = xgb.XGBClassifier()
+grid_search = GridSearchCV(estimator=xgb_model, param_grid=param_grid, cv=5)
+grid_search.fit(X_train_sub, y_train)
+best_params = grid_search.best_params_
+best_score = grid_search.best_score_
+best_model = grid_search.best_estimator_
+test_accuracy = best_model.score(X_test_sub, y_test)
+print("Best Parameters: ", best_params)
+print("Best Score: ", best_score)
+print("Test Accuracy: ", test_accuracy)
+
+
+
 # post result analysis
 
 # Create a confusion matrix
