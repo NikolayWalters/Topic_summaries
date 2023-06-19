@@ -18,6 +18,18 @@ df.describe().T\
         .style.bar(subset=['mean'], color=px.colors.qualitative.G10[2])\
         .background_gradient(subset=['std'], cmap='Blues')\
         .background_gradient(subset=['50%'], cmap='BuGn')
+# look out for low variance features (consider dropping or transforming)
+
+# if data is noisy can be helpful to bin continuous features into discrete values
+# startegies:
+# >Uniform
+# Each bin has same width in span of possible values for variable.
+# >Quantile
+# Each bin has same number of values, split based on percentiles.
+# >Clustered
+# Clusters are identified & examples are assigned to each group
+
+
 
 # check for dups
 .drop_duplicates()
@@ -27,6 +39,9 @@ df.describe().T\
 sns.set(style="ticks")
 sns.pairplot(train_data)
 plt.show()
+
+# look out for multimodal distributions - suggest subpopulations or systematic errors
+# i.e. multiple units of measurements used
 
 
 # check for class imbalance, can plot
@@ -48,7 +63,7 @@ fig.add_annotation(x=0.5, y=0.5, align='center', xref='paper', yref='paper',
                    showarrow=False, font_size=22, text='Class<br>Imbalance')
 fig.show()
 
-# if yes, under/over-sampling or more advanced like smote (need to make some scatter plots like pca maybe to decide
+# if yes, under/over-sampling or more advanced like tomek/smote (need to make some scatter plots like pca maybe to decide
 # if appropriate)
 # be careful with smote though. not always a good idea, usually don't use when:
 # 1) Small minority class, i.e. 99/1 split
@@ -61,11 +76,15 @@ smote = SMOTE()
 X_resampled, y_resampled = smote.fit_resample(X, y)
 train = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled, columns=['Machine failure'])], axis=1)
 
+# sometimes can reframe the problem into outlier detection
+
 
 # missing vals
 train.isnull().values.any()
 #or
 print(train.isna().sum())
+# don't forget to think about why data is missing
+# and whether there's any correlation with other features
 
 # or if it's some specific val:
 # could also read it in with replacement to nans: train=pd.read_csv('../input/train.csv', na_values=-1)
@@ -220,6 +239,7 @@ ct = ColumnTransformer(
 # Apply preprocessing
 X = ct.fit_transform(X)
 X_test = ct.transform(X_test)
+# there's also dummy encoding when one hot creates too many cols 
 
 
 
@@ -240,6 +260,7 @@ cmap = sns.diverging_palette(220, 10, as_cmap=True)
 sns.heatmap(corr, cmap=cmap, vmax=.3, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 plt.show()
+# consider dropping or combining high correlation features
 
 
 # corr matrix
@@ -423,6 +444,13 @@ test_accuracy = best_model.score(X_test_sub, y_test)
 print("Best Parameters: ", best_params)
 print("Best Score: ", best_score)
 print("Test Accuracy: ", test_accuracy)
+
+
+
+# random grid search is better for hyperparameter search
+# can also look into Bayesian optimization:
+# + reliable results quicker
+# - not parallelizable
 
 
 
