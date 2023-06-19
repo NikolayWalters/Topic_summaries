@@ -29,6 +29,21 @@ df.describe().T\
 # >Clustered
 # Clusters are identified & examples are assigned to each group
 
+# discretize into 10 equal sized bins
+from sklearn.preprocessing import KBinsDiscretizer
+#Use a numpy array of the features
+X = data.data
+#Dfine the discretization strategy, number of bins and encoding of
+#the categorical features that will be created from the continuous ones:
+disc = KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='uniform')
+#Learn transformation:
+disc.fit(X)
+#Apply transformation:
+X = disc.transform(X)
+#Create a dataframe using the discretized feature values & add the target column:
+df = pd.DataFrame(X,columns=data.feature_names)
+df['target'] = pd.Series(data.target) # name the label column as 'target' for clarity
+
 
 
 # check for dups
