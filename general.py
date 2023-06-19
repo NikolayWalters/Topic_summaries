@@ -78,6 +78,14 @@ train = pd.concat([pd.DataFrame(X_resampled), pd.DataFrame(y_resampled, columns=
 
 # sometimes can reframe the problem into outlier detection
 
+#missingno - a python library allowing for quick inspection of missing data and missingness correlation / mechanism.
+# plot of missing vals, note sample size 250
+import missingno as msno
+#Get & visualize missingness matrix
+msno.matrix(data.sample(250))
+
+# or as a bar plot
+msno.bar(data.sample(1000))
 
 # missing vals
 train.isnull().values.any()
@@ -85,6 +93,11 @@ train.isnull().values.any()
 print(train.isna().sum())
 # don't forget to think about why data is missing
 # and whether there's any correlation with other features
+
+# missing vals corr map
+msno.heatmap(data)
+# for deeper interpretation can use dendrogram
+msno.dendrogram(data)
 
 # or if it's some specific val:
 # could also read it in with replacement to nans: train=pd.read_csv('../input/train.csv', na_values=-1)
@@ -143,6 +156,8 @@ data.loc[data['Age'].isna(),'Age']=data.groupby(['HomePlanet','No_spending','Sol
 # in the group, i.e. if one is from origin A then the whole group is likely from A)
 # another example are people filled in into the cabins based on the origin?
 # make heatmaps and look for patterns
+
+
 
 # display join distribution tables
 # Joint distribution
