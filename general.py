@@ -158,6 +158,36 @@ data.loc[data['Age'].isna(),'Age']=data.groupby(['HomePlanet','No_spending','Sol
 # make heatmaps and look for patterns
 
 
+# KNN imputation
+from sklearn.impute import KNNImputer
+#Create numpy arrays with the values of feature 'LoanAmount' on the train & test set
+LoanAmount_train = X_train['LoanAmount'].values
+LoanAmount_test = X_test['LoanAmount'].values
+#Create a KNNImputer object, specifying the number of nearest neighbors
+imp = KNNImputer(n_neighbors=3)#, add_indicator=True)
+#Learn the imputation value (here: mean) on the training set
+imp.fit(LoanAmount_train.reshape(-1, 1))
+#Impute missing training data with training set mean value:
+LoanAmount_train = imp.transform(LoanAmount_train.reshape(-1, 1))
+#Impute missing test set data with training set mean value:
+LoanAmount_test = imp.transform(LoanAmount_test.reshape(-1, 1))
+
+
+#MICE (Multiple Imputation by Chained Equations) 
+from sklearn.experimental import enable_iterative_imputer 
+from sklearn.impute import IterativeImputer
+#Create numpy arrays with the values of feature 'LoanAmount' on the train & test set
+LoanAmount_train = X_train['LoanAmount'].values
+LoanAmount_test = X_test['LoanAmount'].values
+#Create a KNNImputer object, specifying the number of nearest neighbors
+imp = IterativeImputer()#, add_indicator=True)
+#Learn the imputation value (here: mean) on the training set
+imp.fit(LoanAmount_train.reshape(-1, 1))
+#Impute missing training data with training set mean value:
+LoanAmount_train = imp.transform(LoanAmount_train.reshape(-1, 1))
+#Impute missing test set data with training set mean value:
+LoanAmount_test = imp.transform(LoanAmount_test.reshape(-1, 1))
+
 
 # display join distribution tables
 # Joint distribution
