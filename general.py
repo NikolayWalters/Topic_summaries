@@ -514,6 +514,36 @@ print("Test Accuracy: ", test_accuracy)
 
 
 
+# Bayesian optimization for logistic regression
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import RepeatedStratifiedKFold
+from skopt import BayesSearchCV
+from timeit import default_timer as timer
+# Define the learning algorithm
+model = LogisticRegression()
+# Define hyperparameter search space
+space = dict()
+#space['solver'] = ['newton-cg', 'lbfgs']
+#space['penalty'] = ['l1', 'l2', 'elasticnet']
+space['C'] = (1e-6, 100.0, 'log-uniform')
+# Define evaluation
+cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+# Define hyperparameter search
+search = BayesSearchCV(estimator=model, search_spaces=space, n_jobs=-1, cv=cv)
+# Execute hyperparameter search -- keep track of time
+# Note: we use the training data for hyperparameter optimization
+start_search = timer()
+result = search.fit(X_train, y_train) 
+end_search = timer()
+# Report the best result
+print('Best Score: %s' % result.best_score_)
+print('Best Hyperparameters: %s' % result.best_params_)
+print('Hyperparameter optimization time (sec): '+str(end_search - start_search))
+
+
+
+
 # post result analysis
 
 # Create a confusion matrix
