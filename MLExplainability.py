@@ -73,3 +73,31 @@ shap_values = explainer.shap_values(X)
 
 # make plot.
 shap.dependence_plot('Ball Possession %', shap_values[1], X, interaction_index="Goal Scored")
+
+
+
+# LIME Local Interpretable Model-agnostic Explanations
+from lime import lime_tabular
+#The explainer object stores information on the task (training data, type of task,
+#feature names). It can then be used to obtain local explanations (see below).
+explainer = lime_tabular.LimeTabularExplainer(X_train,
+                                              mode="classification",
+                                              feature_names=feature_names)
+#Explain the predictions of the test datapoint at index 13:
+idx_to_explain = 13
+#Print prediction on selected datapoint & its true label. When explaining a model's
+#prediction on a given datapoint, it is a good to know if it is correctly classified by the model
+print("Prediction : ", clf.predict(X_test[idx_to_explain,:].reshape(1,-1))[0])
+print("Actual :     ", y_test[idx_to_explain])
+#The explanation object stores information on the local explanation we wish to perform
+#Note: here we must use predict_proba() to get scores from the classifier,
+#not predict() to get classifications
+explanation = explainer.explain_instance(X_test[idx_to_explain],
+                                         clf.predict_proba, 
+                                         num_features=len(feature_names))
+#Shows score for each of the 2 classes, a bar chart of the contribution of features
+#and a table with actual feature values. The bar chart is sorted from the most
+#important features to the least important.
+explanation.show_in_notebook()
+#Print weights of the local linear model fitted in the vicinity of the input datapoint:
+explanation.as_pyplot_figure()
