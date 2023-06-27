@@ -114,6 +114,22 @@ msno.heatmap(data)
 # for deeper interpretation can use dendrogram
 msno.dendrogram(data)
 
+
+# gives a table with missing data percentage
+from prettytable import PrettyTable
+table = PrettyTable()
+table.field_names = ['Column Name', 'Data Type', 'Train Missing %', 'Test Missing %']
+for column in train.columns:
+    data_type = str(train[column].dtype)
+    non_null_count_train= 100-train[column].count()/train.shape[0]*100
+    if column!='Age':
+        non_null_count_test = 100-test[column].count()/test.shape[0]*100
+    else:
+        non_null_count_test="NA"
+    table.add_row([column, data_type, non_null_count_train,non_null_count_test])
+print(table)
+
+
 # or if it's some specific val:
 # could also read it in with replacement to nans: train=pd.read_csv('../input/train.csv', na_values=-1)
 vars_with_missing = []
