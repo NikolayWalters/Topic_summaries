@@ -184,3 +184,41 @@ plt.suptitle('Scatterplots of the projected data for all pairs of PCs -- '+
 plt.show()
 
 
+# on NFM (Non-negative Matrix Factorization)
+# NB features must be NON-NEGATIVE
+
+import pandas as pd
+from sklearn.decomposition import NMF
+
+# Convert the DataFrame to a numpy array
+data = dataframe.values
+
+# Initialize the NMF model
+nmf_model = NMF(n_components=2)  # Specify the desired number of components
+
+# Fit the model to the data
+nmf_model.fit(data)
+
+# Extract the basis and coefficient matrices
+W = nmf_model.transform(data)  # Basis matrix
+H = nmf_model.components_      # Coefficient matrix
+
+# Convert the factorized matrices back to DataFrames
+W_df = pd.DataFrame(W, columns=['Component 1', 'Component 2'])
+H_df = pd.DataFrame(H, index=['Component 1', 'Component 2'], columns=dataframe.columns)
+
+# Print the factorized matrices
+print("Basis Matrix:")
+print(W_df)
+print("\nCoefficient Matrix:")
+print(H_df)
+
+
+import matplotlib.pyplot as plt
+
+# Visualize the basis matrix (W)
+plt.scatter(W[:, 0], W[:, 1])  # Plot the values from the first two components
+plt.xlabel('Component 1')
+plt.ylabel('Component 2')
+plt.title('NMF Basis Matrix Visualization')
+plt.show()
