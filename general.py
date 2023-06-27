@@ -497,6 +497,18 @@ model.fit(X_train_sub, y_train)
 y_pred = model.predict(X_test_sub)
 
 
+# for regression
+xgb_md = XGBRegressor(objective = 'reg:pseudohubererror',
+                          tree_method = 'gpu_hist',
+                          colsample_bytree = 0.9, 
+                          gamma = 0.65, 
+                          learning_rate = 0.01, 
+                          max_depth = 7, 
+                          min_child_weight = 20, 
+                          n_estimators = 1000, 
+                          subsample = 0.7).fit(X_train, Y_train)
+
+
 
 # or xgboost parameter grid search
 # with cross validation
