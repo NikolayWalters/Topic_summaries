@@ -397,6 +397,12 @@ plt.show()
 
 
 
+# scatterplots of target and some feature
+fig, axes = plt.subplots(1, 2, figsize = (15, 6))
+sns.scatterplot(ax = axes[0], data = train, x = 'Shell Weight', y = 'Age', color = 'steelblue').set_title('Competition Dataset')
+sns.scatterplot(ax = axes[1], data = original, x = 'Shell Weight', y = 'Age', color = 'orange').set_title('Original Dataset');
+
+
 # here think about feature creation based on any discrepancies between the two target classes
 # i.e. are certain ages produce different kde? Create a new feature that indicates whether 
 # the passanger is a child, adolescent or adult. 
