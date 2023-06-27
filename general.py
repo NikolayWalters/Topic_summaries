@@ -188,6 +188,9 @@ data.loc[data['Age'].isna(),'Age']=data.groupby(['HomePlanet','No_spending','Sol
 # another example are people filled in into the cabins based on the origin?
 # make heatmaps and look for patterns
 
+# another thing to conisder is there a feature that should equal the sum of features?
+# if it does not -> outlier to be imputed
+
 
 # KNN imputation
 from sklearn.impute import KNNImputer
@@ -417,6 +420,10 @@ plt.show()
 fig, axes = plt.subplots(1, 2, figsize = (15, 6))
 sns.scatterplot(ax = axes[0], data = train, x = 'Shell Weight', y = 'Age', color = 'steelblue').set_title('Competition Dataset')
 sns.scatterplot(ax = axes[1], data = original, x = 'Shell Weight', y = 'Age', color = 'orange').set_title('Original Dataset');
+
+
+# scatterplot corner plot
+sns.pairplot(data=train, vars=['list of features'], hue='Target')
 
 
 # here think about feature creation based on any discrepancies between the two target classes

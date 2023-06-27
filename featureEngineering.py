@@ -181,3 +181,131 @@ y_encode = X_encode.pop("SalePrice")
 # Training split
 X_pretrain = df.drop(X_encode.index)
 y_train = X_pretrain.pop("SalePrice")
+
+
+
+# notes on transformations
+#1) Log Transformation: This transformation involves taking the logarithm of each data point. It is useful when the data is highly skewed and the variance increases with the mean.
+#         y = log(x)
+#2) Square Root Transformation: This transformation involves taking the square root of each data point. It is useful when the data is highly skewed and the variance increases with the mean.
+#         y = sqrt(x)
+#3) Box-Cox Transformation: This transformation is a family of power transformations that includes the log and square root transformations as special cases. It is useful when the data is highly skewed and the variance increases with the mean.
+#         y = [(x^lambda) - 1] / lambda if lambda != 0
+#         y = log(x) if lambda = 0
+#4) Yeo-Johnson Transformation: This transformation is similar to the Box-Cox transformation, but it can be applied to both positive and negative values. It is useful when the data is highly skewed and the variance increases with the mean.
+#         y = [(|x|^lambda) - 1] / lambda if x >= 0, lambda != 0
+#         y = log(|x|) if x >= 0, lambda = 0
+#         y = -[(|x|^lambda) - 1] / lambda if x < 0, lambda != 2
+#         y = -log(|x|) if x < 0, lambda = 2
+#5) Power Transformation: This transformation involves raising each data point to a power. It is useful when the data is highly skewed and the variance increases with the mean. The power can be any value, and is often determined using statistical methods such as the Box-Cox or Yeo-Johnson transformations.
+#         y = [(x^lambda) - 1] / lambda if method = "box-cox" and lambda != 0
+#         y = log(x) if method = "box-cox" and lambda = 0
+#         y = [(x + 1)^lambda - 1] / lambda if method = "yeo-johnson" and x >= 0, lambda != 0
+#         y = log(x + 1) if method = "yeo-johnson" and x >= 0, lambda = 0
+#         y = [-(|x| + 1)^lambda - 1] / lambda if method = "yeo-johnson" and x < 0, lambda != 2
+#         y = -log(|x| + 1) if method = "yeo-johnson" and x < 0, lambda = 2
+
+# implementation
+# get continious data cols
+cont_cols=[f for f in train.columns if train[f].dtype!="O" and f not in ['Age','Height','original'] and train[f].nunique()>2]
+
+sc=MinMaxScaler()
+dt_params={'criterion': 'absolute_error'}
+table = PrettyTable()
+unimportant_features=[]
+overall_best_score=100
+overall_best_col='none'
+table.field_names = ['Feature', 'Original MAE', 'Transformation', 'Tranformed MAE']
+for col in cont_cols:
+    
+    # Log Transformation after MinMax Scaling(keeps data between 0 and 1)
+    train["log_"+col]=np.log1p(sc.fit_transform(train[[col]]))
+    test["log_"+col]=np.log1p(sc.transform(test[[col]]))
+    
+    # Square Root Transformation
+    train["sqrt_"+col]=np.sqrt(sc.fit_transform(train[[col]]))
+    test["sqrt_"+col]=np.sqrt(sc.transform(test[[col]]))
+    
+    # Box-Cox transformation
+    combined_data = pd.concat([train[[col]], test[[col]]], axis=0)
+    transformer = PowerTransformer(method='box-cox')
+    # Apply scaling and transformation on the combined data
+    scaled_data = sc.fit_transform(combined_data)+1
+    transformed_data = transformer.fit_transform(scaled_data)
+
+    # Assign the transformed values back to train and test data
+    train["bx_cx_" + col] = transformed_data[:train.shape[0]]
+    test["bx_cx_" + col] = transformed_data[train.shape[0]:]
+    
+    # Yeo-Johnson transformation
+    transformer = PowerTransformer(method='yeo-johnson')
+    train["y_J_"+col] = transformer.fit_transform(train[[col]])
+    test["y_J_"+col] = transformer.transform(test[[col]])
+    
+    # Power transformation, 0.25
+    power_transform = lambda x: np.power(x + 1 - np.min(x), 0.25)
+    transformer = FunctionTransformer(power_transform)
+    train["pow_"+col] = transformer.fit_transform(sc.fit_transform(train[[col]]))
+    test["pow_"+col] = transformer.transform(sc.transform(test[[col]]))
+    
+    # Power transformation, 0.1
+    power_transform = lambda x: np.power(x + 1 - np.min(x), 0.1)
+    transformer = FunctionTransformer(power_transform)
+    train["pow2_"+col] = transformer.fit_transform(sc.fit_transform(train[[col]]))
+    test["pow2_"+col] = transformer.transform(sc.transform(test[[col]]))
+    
+    # log to power transformation
+    train["log_sqrt"+col]=np.log1p(train["sqrt_"+col])
+    test["log_sqrt"+col]=np.log1p(test["sqrt_"+col])
+    
+    temp_cols=[col,"log_"+col,"sqrt_"+col, "bx_cx_"+col,"y_J_"+col ,"pow_"+col,"pow2_"+col,"log_sqrt"+col ]
+    
+    # Fill na becaue, it would be Nan if the vaues are negative and a transformation applied on it
+    train[temp_cols]=train[temp_cols].fillna(0)
+    test[temp_cols]=test[temp_cols].fillna(0)
+
+    #Apply PCA on  the features and compute an additional column
+    pca=TruncatedSVD(n_components=1)
+    x_pca_train=pca.fit_transform(train[temp_cols])
+    x_pca_test=pca.transform(test[temp_cols])
+    x_pca_train=pd.DataFrame(x_pca_train, columns=[col+"_pca_comb"])
+    x_pca_test=pd.DataFrame(x_pca_test, columns=[col+"_pca_comb"])
+    temp_cols.append(col+"_pca_comb")
+    test=test.reset_index(drop=True) # to combine with pca feature
+    
+    train=pd.concat([train,x_pca_train],axis='columns')
+    test=pd.concat([test,x_pca_test],axis='columns')
+    
+    # See which transformation along with the original is giving you the best univariate fit with target
+    kf=KFold(n_splits=5, shuffle=True, random_state=42)
+    
+    MAE=[]
+    
+    for f in temp_cols:
+        X=train[[f]].values
+        y=train["Age"].values
+        
+        mae=[]
+        for train_idx, val_idx in kf.split(X,y):
+            X_train,y_train=X[train_idx],y[train_idx]
+            x_val,y_val=X[val_idx],y[val_idx]
+            
+            model=LinearRegression()
+            model.fit(X_train,y_train)
+            y_pred=model.predict(x_val)
+            mae.append(mean_absolute_error(y_val,y_pred))
+        MAE.append((f,np.mean(mae)))
+        if overall_best_score>np.mean(mae):
+            overall_best_score=np.mean(mae)
+            overall_best_col=f
+        if f==col:
+            orig_mae=np.mean(mae)
+    best_col, best_acc=sorted(MAE, key=lambda x:x[1], reverse=False)[0]
+    
+    cols_to_drop = [f for f in temp_cols if  f!= best_col and f not in col]
+    final_selection=[f for f in temp_cols if f not in cols_to_drop]
+    if cols_to_drop:
+        unimportant_features=unimportant_features+cols_to_drop
+    table.add_row([col,orig_mae,best_col ,best_acc])
+print(table)  
+print("overall best CV score: ",overall_best_score)
