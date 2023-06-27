@@ -360,6 +360,12 @@ plt.show()
 # consider dropping if target split 50/50 for a feature (to reduce overfitting)
 
 
+# can also do violin plots for cats to compare with target feature
+original['Sex'] = pd.Categorical(original['Sex'], categories = ['I', 'M', 'F'], ordered = True)
+fig, axes = plt.subplots(1, 2, figsize = (15, 6))
+sns.boxplot(ax = axes[0], data = train, x = 'Sex', y = 'Age').set_title('Competition Dataset')
+sns.boxplot(ax = axes[1], data = original, x = 'Sex', y = 'Age').set_title('Original Dataset');
+
 
 # continious features; should plot
 # Figure size
