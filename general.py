@@ -61,7 +61,7 @@ plt.show()
 def replace_outliers_zscore_median(series, threshold=5):
     z_scores = (series - series.mean()) / series.std()
     median = series.median()
-    return series.mask(abs(z_scores) > threshold, median)
+    return series.mask(abs(z_scores) > threshold, median) # series.mask(abs(z_scores) > threshold) returns NaN
 # Apply the function to replace outliers in the DataFrame
 train['Height'] = replace_outliers_zscore_median(train['Height'])
 
@@ -216,6 +216,13 @@ imp.fit(LoanAmount_train.reshape(-1, 1))
 LoanAmount_train = imp.transform(LoanAmount_train.reshape(-1, 1))
 #Impute missing test set data with training set mean value:
 LoanAmount_test = imp.transform(LoanAmount_test.reshape(-1, 1))
+# then replace
+if len(LoanAmount_train) == len(X_train):
+    # Replace the column values with the list
+    X_train['LoanAmount'] = LoanAmount_train
+else:
+    print('wrong length')
+
 
 
 #MICE (Multiple Imputation by Chained Equations) 
