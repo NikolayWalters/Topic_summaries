@@ -14,6 +14,7 @@ cat_columns = train_data.select_dtypes(include=['object']).columns.tolist()
 features = nums_columns + cat_columns
 
 # tabled summary
+import plotly.express as px
 df.describe().T\
         .style.bar(subset=['mean'], color=px.colors.qualitative.G10[2])\
         .background_gradient(subset=['std'], cmap='Blues')\
@@ -54,6 +55,16 @@ df['target'] = pd.Series(data.target) # name the label column as 'target' for cl
 sns.set(style="ticks")
 sns.pairplot(train_data)
 plt.show()
+# good time to check for outliers
+
+# can replace outliers with a median using z-scores (basically how many stds away from mean)
+def replace_outliers_zscore_median(series, threshold=5):
+    z_scores = (series - series.mean()) / series.std()
+    median = series.median()
+    return series.mask(abs(z_scores) > threshold, median)
+# Apply the function to replace outliers in the DataFrame
+train['Height'] = replace_outliers_zscore_median(train['Height'])
+
 
 # look out for multimodal distributions - suggest subpopulations or systematic errors
 # i.e. multiple units of measurements used
