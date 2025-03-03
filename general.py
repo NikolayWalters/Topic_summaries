@@ -470,6 +470,8 @@ X_test = ct.transform(X_test)
 # interaction variables: think domain knowledge, physics equations, etc
 # basically a new column that combines somehow two or more cols
 
+# PolynomialFeatures class from the sklearn library
+# https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html
 
 # generate a simple forest and get+plot feature importance
 X_train = train.drop(['id', 'target'], axis=1)
